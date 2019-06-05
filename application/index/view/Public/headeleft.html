@@ -1,0 +1,30 @@
+<div class="layui-side layui-bg-black">
+    <div class="layui-side-scroll">
+        <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+        <ul class="layui-nav layui-nav-tree"  lay-filter="test">
+            <li class="layui-nav-item layui-nav-itemed"{/if}>
+                <a class="" href="javascript:;">维修</a>
+                <dl class="layui-nav-child">
+                    <dd {if condition="'[item]' eq 'show01'"}class="layui-this" {/if}><a href="{:url('Repair/repair_query')}">维修记录查询</a></dd>
+                    <dd {if condition="'[item]' eq 'show02'"}class="layui-this" {/if}><a href="{:url('Repair/inset_repair')}">维修录入</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item layui-nav-itemed">
+                <a href="javascript:;">手工计划录入</a>
+                <dl class="layui-nav-child">
+                    <dd {if condition="'[item]' eq 'show04'"}class="layui-this"{/if}><a href="{:url('Addmanual/plan_num')}">产品数量计划</a></dd>
+                    <dd {if condition="'[item]' eq 'show05'"}class="layui-this"{/if}><a href="{:url('Addmanual/plan_time')}">生产时间计划</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item layui-nav-itemed">
+                <a href="javascript:;">其他项目</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="javascript:void (0);">未定义1</a></dd>
+                    <dd><a href="javascript:void (0);">未定义2</a></dd>
+                </dl>
+            </li>
+        </ul>
+    </div>
+</div>
+<script>
+</script>

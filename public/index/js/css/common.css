@@ -1,0 +1,132 @@
+
+/*左边title*/
+.roomlisttitle{
+    float: left;
+    width: 50%;
+    line-height: 50px;
+}
+.roomlisttitle p{
+    text-align: left;
+    font-size: 22px;
+    padding-left: 7px;
+    color: #9a9a9a;
+    font-family: Tahoma, "微软雅黑", "宋体";
+    font-weight: bold;
+}
+.roomlisttitle p span{
+    color: black;
+    /*font-size: 17px;*/
+}
+/*右边搜索框*/
+.roomlistbtn{
+    float: left;
+    width: 50%;
+    line-height: 50px;
+    text-align: right;
+}
+.roomlistbtn > div{
+    /*padding-top: 2px;*/
+    padding-right: 10px;
+}
+/************搜索框******************/
+.query_test{
+    width: 145px;
+    height: 25px;
+    border-radius: 5px;
+    border: 1px solid black;
+    line-height: 30px;
+    padding-left: 5px;
+}
+/*搜索框按钮*/
+.query_btn{
+    width: 45px;
+    height: 27px;
+    border: none;
+    background: #1E9FFF;
+    color: #FFFFFF;
+    cursor:pointer;
+    border-radius: 2px;
+    font-size: 12px;
+}
+/***********************************************************************************************************************/
+/*添加用户 批量添加 IP及端口 认证更新界面的table*/
+.alltab{
+    margin-top: 20%;
+}
+
+/*所有的界面的input输入框*/
+.inputtext{
+    width: 190px;
+    height: 25px;
+    border: 1px solid #e6e2df;
+    line-height: 26px;
+    padding-left: 6px;
+    /*background: blue;*/
+}
+/*******************表格********************/
+.table_tr {
+    width: 100%;
+    font-size: 12px;
+    text-align: center;
+    line-height: 23px;
+    color: black;
+}
+.list_tr {
+    background: #adadad;
+    /* background: black; */
+    color: #ffffff;
+    /* pointer-events: none; */
+    height: 35px;
+    font-size: 13px;
+}
+.tr_line_height{
+    line-height: 40px;
+}
+
+    /*所有界面的蓝色按钮*/
+.addbtn{
+    width: 67px;
+    height: 32px;
+    border: none;
+    background: #1E9FFF;
+    color: #FFFFFF;
+    cursor:pointer;
+    border-radius: 2px;
+    font-size: 15px;
+}
+.addbtn:hover{background:#89c1ea; }
+
+/*所有界面白色按钮*/
+.whitebtn{
+    height: 27px;
+    margin-left: 1%;
+    width: 70px;
+    padding: 0;
+    background: #FFFFFF;
+    border: 1px solid #C9C9C9;
+    cursor:pointer;
+    border-radius: 2px;
+    color: #555;
+}
+.whitebtn:hover{border: 1px solid #88c189;}
+
+/*所有界面功能按钮（白色小按钮）*/
+.white_min{
+    height: 20px;
+    line-height: 20px;
+    font-size: 12px;
+    cursor:pointer;
+}
+.white_min:hover{border: 1px solid #88c189;}
+
+/*页脚*/
+.custom_footer{
+    position: fixed;
+    left: 200px;
+    right: 0;
+    bottom: 0;
+    padding: 0 15px;
+    background-color: #eee;
+    height: 30px;
+    line-height: 30px;
+}

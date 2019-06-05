@@ -1,0 +1,36 @@
+
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo">
+            <a href="{:url('Repair/inset_repair')}"><img src="/index/i/logo.png" width="145px" height="40px"></a>
+        </div>
+        <!-- 头部区域（可配合layui已有的水平导航） -->
+        <ul class="layui-nav layui-layout-left">
+            <li class="layui-nav-item"><a href="">控制台</a></li>
+            <li class="layui-nav-item"><a href="">控制台一</a></li>
+            <li class="layui-nav-item">
+                <a href="javascript:;">控制台三</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="">邮件管理</a></dd>
+                    <dd><a href="">消息管理</a></dd>
+                    <dd><a href="">授权管理</a></dd>
+                </dl>
+            </li>
+        </ul>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item">
+                <a href="javascript:;">
+                    欢迎登录&nbsp;&nbsp;&nbsp;&nbsp;<span id="nickname"></span>&nbsp;&nbsp;&nbsp;
+                    <img src="http://t.cn/RCzsdCq" class="layui-nav-img">
+                    <script>
+                        $("#nickname").html(sessionStorage.getItem("nickname"));
+                    </script>
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="">基本资料</a></dd>
+                    <!--<dd><a href="">安全设置</a></dd>-->
+                </dl>
+            </li>
+            <li class="layui-nav-item">&nbsp;&nbsp;<span onclick="exit()" style="cursor:pointer">退出</span></li>
+        </ul>
+    </div>

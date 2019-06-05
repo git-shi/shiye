@@ -1,0 +1,59 @@
+body{
+    background: #d9e0e7;
+}
+.Bg_query{
+    width: 90%;
+    margin: 0 auto;
+    background: #fffff4;
+    margin-top: 2%;
+}
+.alltable{
+    width: 95%;
+    margin: 0 auto;
+    margin-top: 2%;
+    text-align: center;
+}
+/*所有界面的搜索框*/
+.input_text{
+    width: 130px;
+    height: 30px;
+    border: 1px solid black;
+    border-radius: 5px;
+    padding-left: 1%;
+
+}
+
+
+/*维修目录生成无极限树样式*/
+ul li {
+    list-style-type: none;
+}
+
+.box {
+    width: 200px;
+    /*border: 1px solid red;*/
+}
+
+ul {
+    /*margin-left: 20px;*/
+    /*border: 1px solid blue;*/
+}
+.menuUl ul{
+    margin-left: 30px;
+}
+.menuUl li {
+    margin: 10px 0;
+}
+
+.menuUl li span:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+.menuUl li i { margin-right: 10px; top: 0px; cursor: pointer; color: #161616;}
+
+/**********************************************************************************************************************/
+/*    repair_query  */
+
+
+/**********************************************************************************************************************/
+/* plan_time   */

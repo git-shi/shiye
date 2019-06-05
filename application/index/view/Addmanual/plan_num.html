@@ -1,0 +1,322 @@
+{include file="Public/title" /}
+<style>
+    .title{
+        width: 95%;
+        background: #242a30;
+        line-height: 35px;
+        margin-left: 2.5%;
+        border-radius: 5px 5px 0 0;
+        display: inline-block;
+    }
+    .text{
+        width: 15%;
+        height: 30px;
+        line-height: 30px;;
+        color: #555;
+        background-color: #fff;
+        font-family: inherit;
+        font-size: 12px;
+        border-radius: 5px;
+        border: 1px solid #ccd0d4;
+        padding-left: 1%;
+    }
+    .btn{
+        height: 30px;
+        border: none;
+        background: dodgerblue;
+        padding: 0 15px;
+        border-radius: 5px;
+        font-size: 13px;
+        color: #FFFFFF;
+        margin-left: 1%;
+        cursor:pointer
+    }
+    .btn:hover{
+        background: #67b3fd;
+        color: #6b6b6b;
+    }
+    .tab{
+        text-align: center;
+        border: 1px solid #ddd;
+        line-height: 32px;
+        color: #544f4f;
+    }
+    #planTab td{border: 1px solid #c1c1c1}
+</style>
+</head>
+<body class="layui-layout-body">
+{include file="Public/loging" /}
+{include file="Public/header" /}
+{include file="Public/headeleft" item="show04"/}
+<div class="layui-body">
+    <div id="intips"></div>
+        <div>
+            <div>
+                <p style="width: 46%;float: left;margin: 1% 2%">
+                    <img src="/index/i/manage.png" width="30px" height="30px;" style="vertical-align:middle">
+                    <span style="font-size: 25px;vertical-align:middle;color: #494f54">产品数量计划</span>
+                </p>
+                <p style="width:46%;float: right;text-align: right;margin: 1% 2%">
+                    <a href="javascript:void(0)">首页</a>&nbsp;&nbsp;|&nbsp;
+                    <a href="javascript:void(0)">手工计划录入</a>&nbsp;&nbsp;|&nbsp;
+                    <a href="javascript:void(0)">产品数量计划</a>
+                </p>
+            </div>
+            <div class="title">
+                <div>
+                    <p style="float: left;width: 48%;margin-left: 2%;color: #ffffff">产品数量计划</p>
+                    <!--<p style="float: left;width: 48%;text-align: right;margin-right: 2%">
+                        <img class="bor_radius" src="/index/i/update.png" title="刷新">
+                        <img class="bor_radius" src="/index/i/exit.png" title="关闭">
+                    </p>-->
+                </div>
+            </div>
+            <div>
+                <div style="background: #FFFFFF;width: 95%;margin: 0 auto;">
+                    <div style="padding-top: 1%;padding-bottom: 0.2%">
+                        <div style="margin-left: 2.5%">
+                            <span>订单编号:</span><input class="text" type="text" id="orderNum" oninput="nbsp('orderNum')" placeholder="请输入订单号">
+                            <span>产品名称:</span><input class="text" type="text" id="prdName"  oninput="nbsp('prdName')"  placeholder="请输入产品名称">
+                            <input class="btn" type="button" value="查询" onclick="queryPlan()">
+                            <input class="btn" type="button" value="新增" onclick="addplan()">
+                            <input type="text" id="type" style="display: none">
+                            <input type="text" id="ordernub" style="display: none">
+                        </div>
+                        <div id="table" style="margin-top: 1%"></div>
+                        <!--新增框-->
+                        <div class="addxin" id="addxin" style="z-index: 1">
+                            <div>
+                                <h3 style="padding: 1% 0 0 2%">产品数量计划信息</h3>
+                                <hr>
+                                <table id="planTab" style="width: 99%;margin: 0 auto;">
+                                    <tr>
+                                        <td style="width: 5%">序号</td>
+                                        <td style="width: 7%">日期</td>
+                                        <td style="width: 8%">订单号</td>
+                                        <td style="width: 8%">产品代码</td>
+                                        <td style="width: 7%">名称</td>
+                                        <td style="width: 8%">型号</td>
+                                        <td style="width: 8%">日期</td>
+                                        <td style="width: 4%">节拍</td>
+                                        <td style="width: 9%">应到人数</td>
+                                        <td style="width: 9%">实到人数</td>
+                                        <td style="width: 9%">计划生产量</td>
+                                        <td style="width: 9%">生产线号</td>
+                                        <td style="width: 9%">班组</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span id="unm">序号</span></td>
+                                        <td><span id="time"></span></td>    <!-- 日期 -->
+                                        <td><span id="Pdnum"></span></td>
+                                        <td><span id="productCode"></span></td>
+                                        <td><span id="pdname"></span></td>
+                                        <td><span id="pdXh"></span></td>
+                                        <td><span id="pdTime"></span></td>
+                                        <td><span id="pdjp"></span></td>
+                                        <td><input type="text" id="workers" placeholder="应到人数" style="width: 70px;height: 30px;"></td>
+                                        <td><input type="text" id="workers_real" placeholder="实到人数" style="width: 70px;height: 30px;"></td>
+                                        <td><input type="text" id="productNum" placeholder="计划生产量" style="width: 70px;height: 30px;"></td>
+                                        <td><input type="text" id="planNum" placeholder="生产线号" style="width: 70px;height: 30px;"></td>
+                                        <td><input type="text" id="team" placeholder="班组" style="width: 70px;height: 30px;"></td>
+                                    </tr>
+                                </table>
+                                <hr>
+                                <p style="text-align: right;padding-right: 2%">
+                                    <input type="button" class="btn" value="保存" onclick="storage()">
+                                    <input type="button" class="btn" value="关闭" onclick="planClose()">
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<script>
+    var upCount;
+    var upPer;
+    var upCurrPage;
+    //点击查询按钮构造表格（upCount：总数据条数  upPer：每页显示多少条  upCurrPage：当前页）
+    function queryPlan(curr){
+        var order_num = $("#orderNum").val();   //订单输入框 100657220
+        var productName = $("#prdName").val();  //产品名称输入框   电饭
+        if(order_num != "" || productName != ""){
+            if(curr == undefined){
+                upCurrPage = 1;     //设置当前页
+            }
+            upPer = 10;
+            var url = "http://"+ apiurl +"/api/manualPlan/ProductQuantityPlanQuery?orderno="+order_num+"&page="+upCurrPage+"&per="+upPer+"&pname="+productName+"";
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET',url,true);
+            xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");  //必须写在open和send中间
+            xhr.send();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4&&xhr.status ===200){
+                    var ret = xhr.responseText;
+                    var content = JSON.parse(ret);
+                    upCount = content.result.TotalCount;    //获取总数量
+                    var list = "<table class='tab' border='1' style='width: 95%;margin: 0 auto;'>"+
+                            "<tr style='color: black;background: #ababab'>" +
+                                "<td>序号</td>"+
+                                "<td>日期</td>"+
+                                "<td>订单号</td>"+
+                                "<td>产品代码</td>"+
+                                "<td>产品名称</td>"+
+                                "<td>产品型号</td>"+
+                                "<td>生产日期</td>"+
+                                "<td>生产节拍</td>"+
+                                "<td>应到人数</td>"+
+                                "<td>实到人数</td>"+
+                                "<td>计划生产量</td>"+
+                                "<td>生产线号</td>"+
+                                "<td>班组</td>"+
+                            "</tr>";
+                    if(content.result.Data.length == ""){
+                        list += "<tr style='height: 300px;text-align: center'><td colspan='13'><div>没有获取到数据</div></td></tr>"
+                    }else {
+                        for(var i = 0 ; i< content.result.Data.length; i++){
+                            list += "<tr>"+
+                                    "<td>"+(i+1)+"</td>"+    //序号
+                                    "<td>"+ content.result.Data[i]["pdate"] +"</td>"+
+                                    "<td>"+ content.result.Data[i]["orderno"] +"</td>"+  //订单号
+                                    "<td>"+ content.result.Data[i]["pcode"] +"</td>"+        //产品代码
+                                    "<td>"+ content.result.Data[i]["pname"] +"</td>"+        //产品名称
+                                    "<td>"+ content.result.Data[i]["type"] +"</td>"+         //产品型号
+                                    "<td>"+ content.result.Data[i]["pdatetime"] +"</td>"+   //生产日期
+                                    "<td>"+ content.result.Data[i]["stdjp"] +"</td>"+       //生产节拍
+                                    "<td>"+ content.result.Data[i]["workers"] +"</td>"+    //应到人数
+                                    "<td>"+ content.result.Data[i]["workers_real"] +"</td>"+ //实到人数
+                                    "<td>"+ content.result.Data[i]["pnum"] +"</td>"+    //计划产量
+                                    "<td>"+ content.result.Data[i]["plinenub"] +"</td>"+    //
+                                    "<td>"+ content.result.Data[i]["team"] +"</td>";     //班组
+                            list += "</tr>"
+                        }
+                    }
+                    list += "<table>";
+                    list += "<div id='dataPages' style='text-align: center'></div>";
+                    $("#table").html(list);
+                    dataPage();      //分页
+                }
+            };
+        }else{
+            alert("请输入订单编号和订单名称")
+        }
+    }
+    //构造分页
+    function dataPage(){
+        layui.use('laypage', function () {
+            var laypage = layui.laypage;
+            laypage.render({
+                elem: 'dataPages'
+                , count: upCount     //数据总数。一般通过服务端得到
+                , layout: ['count', 'prev', 'page', 'next']
+                , limit: upPer    //每页显示的条数
+                , curr: upCurrPage //起始页。一般用于刷新类型的跳页以及HASH跳页
+                , groups: 5                     //连续出现的页码个数
+                , jump: function(obj,first){
+                    if(!first){
+                        upCurrPage = obj.curr;
+                        queryPlan(obj.curr);
+                    }
+                }
+            });
+        });
+    }
+    //新增按钮
+    function addplan() {
+        //先获取信息，然后再做添加
+        var order_num = $("#orderNum").val();   //订单输入框 100657220
+        var productName = $("#prdName").val();  //产品名称输入框   电饭
+        if(order_num == ""){
+            alert("请输入订单号")
+        }else if(order_num.length < 9){
+            alert("请输入正确的订单号")
+        }else {
+            if(upCount != ''){
+                $("#intips").css("display","block");
+                $("#addxin").css("display","block");
+                //获取时间
+                var date = new Date();
+                var year = date.getUTCFullYear();
+                var month = date.getUTCMonth();
+                var day = date.getUTCDate();
+                var hours = date.getHours();
+                var min = date.getMinutes();
+                var cnd = date.getSeconds();
+                var time = year + fnW(month + 1) + fnW(day);
+                var time1 = year+"-"+fnW(month+1)+"-"+fnW(day)+" "+fnW(hours)+":"+fnW(min)+":"+fnW(cnd);
+                function fnW(str) { //判断时分秒是否小于10，如过小于10，在前面加0
+                    var num;
+                    if (str > 9) {
+                        num = str;
+                    }
+                    else {
+                        num = "0" + str;
+                    }
+                    return num;
+                }
+
+                var page = "1";     //设置当前页
+                var url = "http://" + apiurl + "/api/manualPlan/ProductQuantityPlanQuery?orderno=" + order_num + "&page=" + page + "&per=10&pname=" + productName + "";
+                var xml = new XMLHttpRequest();
+                xml.open('GET', url, true);
+                xml.setRequestHeader("Content-type", "application/x-www-form-urlencoded");  //必须写在open和send中间
+                xml.send();
+                xml.onreadystatechange = function () {
+                    var ret = xml.responseText;
+                    var content = JSON.parse(ret);
+                    $("#Pdnum").html(content.result.Data[0]["orderno"]);
+                    $("#productCode").html(content.result.Data[0]["pcode"]);
+                    $("#pdname").html(content.result.Data[0]["pname"]);
+                    $("#pdXh").html(content.result.Data[0]["ptype"]);
+                    $("#pdjp").html(content.result.Data[0]["stdjp"]);
+                    $("#type").val(content.result.Data[0]["type"]);
+                    $("#ordernub").val(content.result.Data[0]["ordernub"]);
+                };
+                $("#time").html(time);
+                $("#pdTime").html(time1);
+            }else {
+                alert("请先完善订单信息")
+            }
+        }
+    }
+    //添加按钮
+    function storage(){
+        var pdate     = $("#time").text();          //日期
+        var orderno   = $("#Pdnum").text();         //订单号
+        var pcode     = $("#productCode").text();   //产品代码
+        var pname     = $("#pdname").text();        //产品名称
+        var ptype     = $("#pdXh").text();          //产品型号
+        var pdatetime = $("#pdTime").text();        //生产时间
+        var stdjp     = $("#pdjp").text();          //节拍
+        var ordernub  = $("#ordernub").val();       //销售订单量
+        var workers   = $("#workers").val();        //应到人数
+        var team      = $("#team").val();           //班组
+        var pnum      = $("#productNum").val();     //计划生产量
+        var plinenub  = $("#planNum").val();        //生产线号
+        var workers_real = $("#workers_real").val();//实到人数
+        if(ordernub == ''){     //销售订单量
+            ordernub = '500';
+        }
+        var type      = $("#type").val();    //型号
+        if(type == ''){
+            typetype  ='40PHK1';
+        }
+        var ret = saveQuantityPlan(pdate,orderno,pcode,pname,ptype,pdatetime,stdjp,ordernub,type,workers,workers_real,pnum,plinenub,team);
+        if(ret.code == '200'){
+            alert("保存成功");
+            $("#addxin").css("display","none");
+        }else if(ret.code == '400'){
+            alert(保存失败+"："+ret.message)
+        }else{
+            alert("参数错误")
+        }
+    }
+    //关闭按钮
+    function planClose(){
+        $("#addxin").css("display","none");
+        $("#intips").css("display","none");
+        queryPlan()
+    }
+</script>
+{include file="Public/bottom" /}

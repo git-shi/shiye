@@ -1,0 +1,633 @@
+{include file="Public/title" /}
+<style>
+    .text{
+        width: 80%;
+        height: 25px;
+        padding-left: 3%;
+    }
+    .hovers:hover{
+        background: #0bad6b;
+        cursor:pointer;
+    }
+    .manage{
+        overflow: hidden;
+        line-height:30px;
+        background: #000000;
+        color: #ffffff;
+        font-size: 13px;
+        position: relative;
+    }
+    .bor_radius{
+        border-radius: 10px;
+        width: 20px;
+        height: 20px;
+        background: #ffffff;
+        margin-left: 1%;
+    }
+    .allteble_w{
+        width: 100%;
+        border-color: #ddd;
+        color: #696969;
+    }
+    .allteble_w tr{
+        line-height: 30px;;
+    }
+    .addcode{
+        padding: 0 11px;
+        height: 30px;
+        border: none;
+        line-height: 30px;
+        margin-left: 1%;
+        border-radius: 5px;
+        background: #49b6d6;
+        color: #ffffff;
+        font-weight: bold;
+    }
+    .left{
+        text-align: right;
+    }
+    .addxin{
+        display: block;
+        width: 70%;
+        background:#FFFFFF;
+        position: fixed;
+        margin: 0 auto;
+        border-radius: 5px;
+        top: 30%;
+        left: 22%;
+        /*right: 0;*/
+        padding-bottom: 1%;
+    }
+    .addxin table{
+        width: 100%;
+        line-height: 50px;
+        text-align: center;
+    }
+    #intips{
+        display: none;
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        background: #707478;
+        filter:alpha(opacity:30); opacity:0.4;
+    }
+</style>
+</head>
+<body class="layui-layout-body">
+{include file="Public/loging" /}
+{include file="Public/header" /}
+{include file="Public/headeleft" item="show01" open="open01"}
+<div class="layui-body">
+    <div id="intips"></div>
+    <div class="Bg_query">
+        <div>
+            <div class="manage">
+                <div>
+                    <p style="float: left;width: 48%;margin-left: 2%">物料管理</p>
+                </div>
+            </div>
+            <div class="alltable" id="alltable">
+            </div>
+        </div>
+        <hr>
+        <div>
+            <div style="margin-left: 1.5%">  <!--头-->
+                物品编码:<input class="input_text" type="text" id="proCode" placeholder="物品编码">
+                维修状态:
+                <select class="input_text" id="errCode" style="height: 33px;">
+                    <option disabled="disabled">选择维修状态</option>
+                    <option>全部</option>
+                    <option value="01" selected="selected">待修</option>
+                    <option value="02">已维修</option>
+                    <option value="03">无法维修</option>
+                </select>
+                起始日期:<input type="text" class="time input_text" id="start_time" placeholder="请选择时间">
+                截止日期:<input type="text" class="end_time input_text" id="end_time" placeholder="请选择时间">
+                <input class="addcode hovers" id="layerDemo" type="button" value="查询" onclick="repair_modify()">
+                <input class="addcode morebtn hovers" type="button" value="新增维修记录" onclick="newRepair()">
+            </div>
+            <div class="alltable" id="query_table">
+            </div>
+        </div>
+        <!--新增维修记录框-->
+        <div class="addxin" style="display: none;">
+            <div>
+                <h3 id="addTitle" style="padding: 1% 0 0 1%">生产计划</h3>
+                <hr>
+                <div id="addOrder"></div>
+                <div id="modifyOrder"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    //$(".allteble_w tr:odd").attr("bgColor","#f3f3f3");  //隔行变色
+    //多选择框时间选择器
+    function layuidata(){
+        layui.use('laydate', function(){
+            var laydate = layui.laydate;
+            laydate.render({
+                elem: '.time'
+//                ,value: new Date()
+                ,type: 'date'
+
+            });
+        });
+        layui.use('laydate', function(){
+            var laydate = layui.laydate;
+            //日期时间选择器
+            laydate.render({
+                elem: '.end_time'
+//                ,value: new Date()
+                ,type: 'date'
+    //            ,min:minDate()
+            });
+        });
+        function minDate(){
+            var now = new Date();
+            return now.getFullYear()+"-" + (now.getMonth()+1) + "-" + now.getDate();
+        }
+    }
+    //页面加载完成调用
+    $(document).ready(function (){
+        layuidata();
+        ready();
+        repair_modify();
+        btnPages();
+        upPages();
+    });
+    //构造上面的表格（upCount：总数据条数  upPer：每页显示多少条  upCurrPage：当前页）
+    var upCount;
+    var upPer;
+    var upCurrPage;
+    function ready(curr){
+        var errCode= ''; //产品错误代码
+        var prodNo = ''; //产品编号
+        var Date1  = ''; //开始时间
+        var Date2  = ''; //结束时间
+        var stateNo= ''; //维修状态
+        if(curr == undefined){
+            upCurrPage = 1;  //当前页
+        }
+        upPer = "8";     //每页显示多少条数据
+        var btm = QueryRepair(upCurrPage,upPer,prodNo,stateNo,errCode,Date1,Date2);
+        var content = JSON.parse(btm.responseText);
+        upCount = content.result.TotalCount;
+        var list = "<table class='allteble_w' border='1'>"+
+                "<tr style='background: #ababab;font-weight: bold'>" +
+                "<td>序号</td>"+
+                "<td>物品编码</td>"+
+                "<td>不良/维修代码</td>"+
+                "<td>不良/维修名称</td>"+
+                "</tr>";
+        for(var i = 0; i < content.result.Data.length; i++){
+            var repair = content.result.Data[i].repair;
+            list += "<tr>"+
+                    "<td>"+(i+1)+"</td>"+
+                    "<td>"+ repair.Pro_barcode+"</td>"+
+                    "<td>"+ repair.Err_code +"</td>"+
+                    "<td>"+ repair.Err_name +"</td>";
+            list += "</tr>";
+        }
+        list +="</table>";
+        list += "<div id='upDataPage' style='text-align: center'></div>";
+        $("#alltable").html(list);
+        upPages();      // 调用分页
+    }
+    //构造上面分页
+    function upPages(){
+        layui.use('laypage', function () {
+            var laypage = layui.laypage;
+            laypage.render({
+                elem: 'upDataPage'
+                , count: upCount     //数据总数。一般通过服务端得到
+                , layout: ['count', 'prev', 'page', 'next']
+                , limit: upPer    //每页显示的条数
+                , curr: upCurrPage //起始页。一般用于刷新类型的跳页以及HASH跳页
+                , groups: 5                     //连续出现的页码个数
+                , jump: function(obj,first){
+                    if(!first){
+                        upCurrPage = obj.curr;
+                        ready(obj.curr);
+                    }
+                }
+            });
+        });
+    }
+
+    var count;
+    var pre;
+    var currPage;
+    //构造下面的表格及功能（count：总数据条数  pre：每页显示多少条  currPage：当前页）
+    function repair_modify(curr){
+        var errCode= ''; //产品错误代码
+        var prodNo = $("#proCode").val(); //产品编号
+        var Date1  = $("#start_time").val(); //开始时间
+        var Date2  = $("#end_time").val(); //结束时间
+        var stateNo= $("#errCode").val(); //维修状态
+        if(curr == undefined){
+            currPage = 1;  //当前页
+        }
+        pre = "8";     //每页显示多少条数据
+        var btm = QueryRepair(currPage,pre,prodNo,stateNo,errCode,Date1,Date2);
+        var btm_tab = JSON.parse(btm.responseText);
+        //console.log(btm_tab);
+        count = btm_tab.result.TotalCount;
+        var list = "<table class='allteble_w' border='1'>"+
+                "<tr style='background: #ababab;font-weight: bold'>" +
+                "<td>序号</td>"+
+                "<td>物品编码</td>"+
+                "<td>维修时间</td>"+
+                "<td>维修状态</td>"+
+                "<td>维修结论</td>"+
+                "<td>维修点</td>"+
+                "<td>操作</td>"+
+                "</tr>";
+        for(var i = 0; i < btm_tab.result.Data.length; i++){
+            var repair = btm_tab.result.Data[i].repair;
+            var NYR =repair.RepairDate.slice(0,10); //截取年月日
+            var SFM = repair.RepairDate.slice(11,19);  //截取时分秒
+            var station= btm_tab.result.Data[i].station;
+            list += "<tr>"+
+                    "<td>"+(i+1)+"</td>"+
+                    "<td>"+ repair.Pro_barcode+"</td>"+
+                    "<td>"+ NYR+" "+SFM +"</td>"+
+                    "<td>"+ btm_tab.result.Data[i].stateName +"</td>"+  //拼接年月日时分秒
+                    "<td>"+ repair.Err_name +"</td>"+
+                    "<td>"+ station.Sta_Name +"</td>"+
+                    "<td>"+
+                        "<input type='button' class='layui-btn layui-btn-primary layui-btn-xs modify'" +
+                        " username='"+ repair.RepairName +"' Pro_NO='"+ repair.Pro_NO +"' modifyId='"+ repair.MoID +"'" +
+                        " Bel_NO='"+ repair.Bel_NO +"' modify='"+btm_tab.result.Data[i].product.ModifyDate+"' Sta_NO='"+ repair.Sta_NO +"'" +
+                        " StateNo='"+ repair.StateNo +"' Pro_barcode='"+ repair.Pro_barcode +"'   value='修改'>"+
+                        "<input type='button' class='layui-btn layui-btn-primary layui-btn-xs del' deleteId='"+ repair.Rp_ID +"' value='删除'>"
+                    +"</td>";
+            list += "</tr>";
+        }
+        list +="</table>";
+        list += "<div id='page' style='text-align: center'></div>";
+        $("#query_table").html(list);
+        //修改按钮
+        $(".modify").on("click",function(){
+            var id = $(this).attr("modifyId");      //工单id
+            var user = $(this).attr("username");    //维修人
+            var proCode = $(this).attr("Pro_NO");   //获取条码
+            var Bel_NO = $(this).attr("Bel_NO");    //产线
+            var M_data = $(this).attr("modify");    //维修时间
+            var Sta_NO = $(this).attr("Sta_NO");    //维修点
+            var StateNo = $(this).attr("StateNo");  //维修状态
+            var Pro_barcode = $(this).attr("Pro_barcode"); //产品条码
+            $("#intips").css("display","block");
+            $(".addxin").css("display","block");
+            $("#addOrder").css("display","none");
+            $("#addTitle").html("修改维修记录");
+
+            //数组筛选
+            var oldMan = $.map(btm_tab.result.Data,function(val,key) {
+                if (val.repair.MoID == id && val.repair.RepairName == user && val.repair.Pro_NO == proCode &&
+                        val.repair.Bel_NO == Bel_NO && val.product.ModifyDate == M_data && val.repair.Sta_NO == Sta_NO &&
+                        val.repair.StateNo == StateNo &&val.repair.Pro_barcode == Pro_barcode
+                ) {
+                    return {MoID:val.repair.MoID,Bel_NO:val.repair.Bel_NO, ModifyDate:val.product.ModifyDate, Sta_NO:val.repair.Sta_NO,
+                        RepairName:val.repair.RepairName, Pro_barcode:val.repair.Pro_barcode,  Pro_NO:val.repair.Pro_NO,
+                        StateNo:val.repair.StateNo, Err_code:val.repair.Err_code, Err_name:val.repair.Err_name,prodLine:val.prodLine,
+                        Pro_barcode:val.repair.Pro_barcode,Rp_ID:val.repair.Rp_ID};
+                }
+            });
+//            console.log(oldMan);
+            var modify = oldMan[0]["ModifyDate"].slice(0, 10); //字符切割 获取年月日
+            var list = "<table border='1' style='width: 95%;margin: 0 auto;line-height: 40px;'>"+
+                        "<tr>"+
+                            "<td class='left'>维修工单：</td>"+
+                            "<td><input type='text' id='plan_code' class='text' value='"+oldMan[0]["MoID"] +"' style='background: #cecece;width: 76%;height: 22px;' readonly unselectable='on' title='不可以修改'></td>"+
+                            "<td class='left'>产线/班组：</td>"+
+                            "<td><input class='text' type='text' id='trem' value='"+ oldMan[0]["prodLine"] +"' style='background: #cecece;width: 76%;height: 22px;' title='不可以修改' readonly unselectable='on'></td>"+
+                        "</tr>"+
+                        "<tr>"+
+                            "<td class='left'>维修时间：</td>"+
+                            "<td ><input class='text' type='datetime' id='startdatatime' value='"+modify+"' style='width: 76%;height: 22px;'></td>"+
+                            "<td class='left'>维修点：</td>"+
+                            "<td><div id='station'></div></td>"+
+                        "</tr>"+
+                        "<tr>"+
+                            "<td class='left'>维修人：</td>"+
+                            "<td><div id='userinfo'></div></td>"+
+                            "<td class='left'>物品标识：</td>"+
+                            "<td><input class='text' type='text' id='goods_sign' value='"+oldMan[0]["Pro_NO"] +"' style='background: #cecece;width: 76%;height: 22px;'title='不可以修改' readonly unselectable='on'></td>"+
+                        "</tr>"+
+                        "<tr>"+
+                            "<td class='left'>维修状态：</td>"+
+                            "<td>" +
+                                "<select class='text' id='plan_state'>" +
+                                    "<option disabled='disabled'>工单选择</option>" +
+                                    "<option value='01'>待修</option>" +
+                                    "<option value='02'>已维修</option>" +
+                                    "<option value='03'>无法维修</option>" +
+                                "</select>" +
+                            "</td>"+
+                            "<td class='left'>维修结论：</td>"+
+                            "<td>" +
+                                "<select class='text' id='plan_result'>" +
+                                    "<option disabled='disabled'>选择维修结论</option>" +
+                                    "<option value='0-1'>Error3</option>" +
+                                    "<option value='2-1'>Error1</option>" +
+                                "</select>" +
+                            "</td>"+
+                        "</tr>"+
+                    "</table>"+
+                        "<hr>"+
+                    "<p style='text-align: right;padding-right: 2%'>"+
+                        "<input type='text' id='Rp_ID' value='"+oldMan[0]["Rp_ID"]+"' style='display: none'>"+
+                        "<input type='text' id='Bel_NO' value='"+oldMan[0]["Bel_NO"]+"' style='display: none'>"+
+                        "<input type='text' id='ErrName' value='"+oldMan[0]["Err_name"]+"' style='display: none'>"+
+                        "<input type='text' id='Pro_barcode' value='"+oldMan[0]["Pro_barcode"]+"' style='display: none'>"+
+                        "<input type='text' id='Pro_code' value='"+oldMan[0]["Pro_barcode"]+"' style='display: none'>"+
+                        "<input type='button' class='addcode' value='保存' onclick='modifyRepair()'>"+
+                        "<input type='button' class='addcode' value='关闭' onclick='closeRepair()'>";
+            list +="</p>";
+            $("#modifyOrder").html(list);
+            getUsersAsync('userinfo');  //动态构造维修人员
+            getStations('station');    //动态构造维修点
+
+//            $("#plan_result").val(oldMan[0]["Err_code"]);
+            $("#plan_result").find("option[value='"+oldMan[0]["Err_code"]+"']").prop("selected", true);     //获取到数据后默认选中
+            $("#plan_state").find("option[value='"+oldMan[0]["StateNo"]+"']").prop("selected", true);     //获取到数据后默认选中
+            layui.use('laydate', function() {
+                var laydate = layui.laydate;
+                laydate.render({
+                    elem: '#startdatatime'
+                    ,type: 'datetime'
+                    ,value: modify
+                    ,isInitValue: false //是否允许填充初始值，默认为 true
+                });
+            });
+        });
+        //删除
+        $(".del").on("click",function(){
+            var id = $(this).attr("deleteId");  //id暂时有重复的
+            var ret = DeleteRepair(id);
+            var content = JSON.parse(ret.responseText);
+            var r=confirm("确认删除这条记录吗?");
+            if (r==true) {
+                if(content.code == "200"){
+                    alert("删除成功!");
+                    repair_modify();
+                }else if(content.Message == "维修记录不存在！"){
+                    alert("维修记录不存在!");
+                }else{
+                    alert("其他错误!");
+                }
+            }else{
+                //取消删除
+            }
+
+        });
+        btnPages(); //调用分页信息
+    }
+    //构造下面table分页
+    function btnPages(){
+        layui.use('laypage', function () {
+            var laypage = layui.laypage;
+            laypage.render({
+                elem: 'page'
+                , count: count     //数据总数。一般通过服务端得到
+                , layout: ['count', 'prev', 'page', 'next']
+                , limit: pre    //每页显示的条数
+                , curr: currPage //起始页。一般用于刷新类型的跳页以及HASH跳页
+                , groups: 5                     //连续出现的页码个数
+                , jump: function(obj,first){
+                    if(!first){
+                        currPage = obj.curr;
+                        repair_modify(obj.curr)
+                    }
+                }
+            });
+        });
+    }
+    //获取工单信息
+    function getOrders(id){
+        var ret = Manufacture(1,500);
+        var count = ret.result.Data;
+//        console.log(ret);
+        var list = "<select class='text'>";
+            list+="<option disabled='disabled'>工单选择</option>";
+        for(var i = 0; i < count.length; i++) {
+            list+="<option>"+ count[i].order.MoID +"</option>"
+        }
+            list+="</select>";
+        $("#"+id).html(list)
+    }
+    //获取所有人员信息（异步获取)
+    function getUsersAsync(id){
+        var page = 1;
+        var per = 500;
+        $.ajax({
+            url:"http://"+ apiurl +"/api/Userinfo/Query?",
+            header:"Content-Type: application/json",
+            data:{badgenumber:'',name:'',no:'',page:page,pager:'',per:per},
+            type:"GET",
+            dataType:"json",
+            async:true,
+            success:function(data){
+                var count = data.result.Data;
+                var user ="<select id="+id+" class='text'>";
+                user+="<option disabled='disabled'>选择人员</option>";
+                for(var i = 0; i < count.length; i++){
+                    user+="<option value='"+count[i].userinfo.Name+"'>"+ count[i].userinfo.Name +"</option>";
+//            console.log(count[i].userinfo.Name)
+                }
+                user +="</select>";
+                $("#"+id).html(user);
+            }
+        });
+    }
+    //获取维修点
+    function getStations(id){
+        var ret = getStation(1,500);
+        var count = ret.result.Data;
+        var station ="<select class='text'>";
+            station +="<option disabled='disabled'>请选择维修点</option>";
+        for(var i = 0; i < count.length; i++){
+            station += "<option value='"+ count[i].main.Sta_NO +"'>"+ count[i].main.Sta_Name +"</option>"
+        }
+            station+="<select>";
+        $("#"+id).html(station);
+    }
+    //修改保存按钮
+    function modifyRepair(){
+        var Rp_ID = $("#Rp_ID").val();
+        var MoID = $("#plan_code").val();
+        var Bel_NO = $("#Bel_NO").val();
+        var RepairDate = $("#startdatatime").val();
+        var Sta_NO = $("#station > select").val();
+        var RepairName = $("#userinfo > select").val();
+        var Pro_barcode = $("#Pro_barcode").val();
+        var Pro_NO = $("#goods_sign").val();
+        var StateNo = $("#plan_state").val();
+        var Err_code = $("#plan_result").val();
+        var Err_name = $("#ErrName").val();
+        //console.log(Rp_ID,MoID,Bel_NO,RepairDate,Sta_NO,RepairName,Pro_barcode,Pro_NO,StateNo,Err_code,Err_name);
+        /*{
+                "Rp_ID": "RPRC-1807231700000001",//同新增接口
+                "MoID": "WKT-18071000000001",
+                "Pro_NO": "PRO-00000001",
+                "Pro_barcode": "PRO-00000001",
+                "Sta_NO": "113",
+                "Err_code": "2-1",
+                "Err_name": "Error2",
+                "Bel_NO": "01090201",
+                "RepairName": "陈迷",
+                "RepairDate": "2018-07-25T09:00:00+08:00",
+                "StateNo": "01"
+        }*/
+        var ret = modifyRepairs(Rp_ID,MoID,Pro_NO,Pro_barcode,Sta_NO,Err_code,Err_name,Bel_NO,RepairName,RepairDate,StateNo);
+//        console.log(ret);
+        if(ret.code == '200'){
+            alert("修改成功");
+            closeRepair();
+            repair_modify();
+        }else{
+            alert("修改失败")
+        }
+    }
+    //新增维修记录按钮
+    function newRepair(){
+        $(".addxin").css("display","block");
+        $("#intips").css("display","block");
+        $("#modifyCode").css("display","none");
+        $("#addTitle").html("新增维修记录");
+        var list = "<table border='1' style='width: 95%;margin: 0 auto;line-height: 40px;'>"+
+            "<tr>"+
+                "<td class='left'>维修工单：</td>"+
+                "<td><div id='getOrders'></div></td>"+
+                "<td class='left'>产线/班组：</td>"+
+                "<td><input class='text' type='text' id='trem' style='background: #cecece;width: 76%;height: 22px;' readonly unselectable='on'></td>"+
+            "</tr>"+
+            "<tr>"+
+                "<td class='left'>维修时间：</td>"+
+                "<td ><input class='text' type='datetime' id='plan_time' style='width: 76%;height: 22px;'></td>"+
+                "<td class='left'>维修点：</td>"+
+                "<td><div id='stations'></div></td>"+
+            "</tr>"+
+            "<tr>"+
+                "<td class='left'>维修人：</td>"+
+                "<td><div id='username'></div></td>"+
+                "<td class='left'>物品标识：</td>"+
+                "<td><input class='text' type='text' id='goodsSign' style='background: #cecece;width: 76%;height: 22px;' readonly unselectable='on'></td>"+
+            "</tr>"+
+            "<tr>"+
+                "<td class='left'>维修状态：</td>"+
+                "<td>" +
+                    "<select class='text' id='plan_state'>" +
+                        "<option disabled='disabled'>工单选择</option>" +
+                        "<option value='01'>待修</option>" +
+                        "<option value='02'>已维修</option>" +
+                        "<option value='03'>无法维修</option>" +
+                    "</select>" +
+                "</td>"+
+                "<td class='left'>维修结论：</td>"+
+                "<td>" +
+                    "<select class='text' id='plan_result'>" +
+                        "<option disabled='disabled'>选择维修结论</option>" +
+                        "<option value='2-1'>Error3</option>" +
+                        "<option value='0-1'>Error1</option>" +
+                    "</select>" +
+                "</td>"+
+            "</tr>"+
+            "</table>"+
+                "<hr>"+
+                "<p style='text-align: right;padding-right: 2%'>"+
+                    "<span id='allcode' style='display: none'></span>"+
+                    "<input type='button' class='addcode' id='contrepair' value='保存' onclick='addRepair()'>"+
+                    "<input type='button' class='addcode' id='closerepair' value='关闭' onclick='closeRepair()'>";
+                list +="</p>";
+        $("#addOrder").html(list);
+        getUsersAsync('username');  //动态构造维修人员
+        getStations('stations');    //动态构造维修点
+        getOrders('getOrders');     //动态构造工单
+        var set = setInterval(function(){
+            var getOrderCode = $("#getOrders > select").val();
+            var btm = QueryRepair(1,500,'','','','','');
+            var btm_tab = JSON.parse(btm.responseText);
+            //console.log(btm_tab);
+            var oldMan = $.map(btm_tab.result.Data,function(val,key) {
+                if (val.repair.MoID == getOrderCode) {
+                    return {MoID:val.repair.MoID,prodLine:val.prodLine,Bel_NO:val.repair.Bel_NO,Pro_NO:val.repair.Pro_NO,Pro_barcode:val.repair.Pro_barcode,
+                        Err_code:val.repair.Err_code, Err_name:val.repair.Err_name};
+                }
+            });
+            //console.log(oldMan);
+            $("#trem").val(oldMan[0]["prodLine"]);
+            $("#goodsSign").val(oldMan[0]["Pro_barcode"]);
+            $("#allcode").html(oldMan[0]["Pro_NO"]+","+oldMan[0]["Pro_barcode"]+","+oldMan[0]["Err_code"]+","+oldMan[0]["Err_name"]+","+oldMan[0]["Bel_NO"]);
+        },100);
+
+        //关闭定时器
+        $("#closerepair").on("click",function(){
+            clearInterval(set);
+        });
+        $("#contrepair").on("click",function(){
+            clearInterval(set);
+        });
+        layui.use('laydate', function(){
+            var laydate = layui.laydate;
+            //日期时间选择器
+            laydate.render({
+                elem: '#plan_time'
+                ,value: new Date()
+                ,type: 'date'
+//            ,min:minDate()
+            });
+        });
+    }
+    //保存新增维修记录
+    function addRepair(){
+        var allcode = $("#allcode").text();     //将后期参数传过来进行分割
+        var arr1 = allcode.split(",");
+        var MoID = $("#getOrders > select").val();  //维修工单
+        var Bel_NO    = arr1[4];  //产线，从获取产线接口获取
+        var RepairDate = $("#plan_time").val();
+        var Sta_NO = $("#stations > select").val();
+        var RepairName = $("#username > select").val();
+        var Pro_barcode = arr1[1];
+        var Pro_NO = arr1[0];
+        var StateNo = $("#plan_state").val();
+        var Err_code = arr1[3];
+        var Err_name = arr1[4];
+        /*{
+         "MoID":"WKT-18071000000001",//工单id
+         "Bel_NO":"01090411",//产线，从获取产线接口获取
+         "RepairDate":"2018-07-25 09:00:00",//维修时间
+         "Sta_NO":"113",//维修点，工位no
+         "RepairName":"陈雪",//维修人，员工名称
+         "Pro_barcode":"PRO-00000001",//产品条码，从获取对应产品接口获取
+         "Pro_NO":"PRO-00000001",//产品no，从获取对应产品获取
+         "StateNo":"01",//维修状态，01：待修02：已维修03：无法维修
+         "Err_code":"2-1",//错误编码
+         "Err_name":"Error2"//错误名称
+         }*/
+        var ret = AddRepair(MoID,Bel_NO,RepairDate,Sta_NO,RepairName,Pro_barcode,Pro_NO,StateNo,Err_code,Err_name);
+        if(ret.code == '200'){
+            alert("添加成功");
+            closeRepair();
+            repair_modify();
+            $("#allcode").text("");     //将后期传过来的参数清空
+        }else{
+            alert("添加失败,请重试")
+        }
+    }
+    //关闭按钮
+    function closeRepair(){
+        $(".addxin").css("display","none");
+        $("#intips").css("display","none");
+        $("#plan_code").val("");
+        $("#trem").val("");       //班组
+        $("#plan_time").val("");  //维修时间
+        $("#plan_place").val(""); //维修地点
+        $("#plan_man").val("");   //维修人
+        $("#goods_sign").val(""); //物品标识
+        $("#plan_state").val(""); //维修状态
+        $("#plan_result").val("");//维修结论
+    }
+</script>
+{include file="Public/bottom" /}

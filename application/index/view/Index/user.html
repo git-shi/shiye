@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户管理</title>
+    <script src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/arvgta/ajaxify@7.3.7/ajaxify.min.js"></script>
+    <style>
+        body{background: #d9e0e7}
+        h1{font-size: 24px;line-height: 28px;color: #242a30;font-weight: 500;font-family: inherit;margin-left: 2%}
+        .user_manage{background: #242a30;color: #FFFFFF; line-height: 40px;font-size: 13px;padding-left: 1%}
+        .text{width: 12%;line-height: 20px;border-radius: 3px;border: 1px solid #ababab;padding-left: 0.5%}
+        .btn{width: 4%;background: #246cae;border: none;color: #FFFFFF;height: 25px;border-radius: 3px;}
+        .btn:hover{background: #699ac8;cursor:pointer}
+        .add{display: none;width: 70%;background:#FFFFFF;position: fixed; margin: 0 auto;border-radius: 5px; top: 30%; left: 15%; padding-bottom: 1%;}
+        table{border-collapse: collapse;border: none;font-size: 12px;}
+        td{border:1px solid #d2d2d2}
+        .min_btn{height:25px;border: none;background: #246cae;color: #FFFFFF;border-radius: 3px;}/*  修改和删除按钮   */
+        .min_btn:hover{background: #699ac8;cursor:pointer}
+    </style>
+</head>
+<body>
+<div>
+    <div style="width: 95%;margin: 0 auto;border: 1px solid black">
+        <h1>用户管理</h1>
+        <div style="width: 100%;margin: 0 auto;border: 1px solid black">
+            <div class="user_manage">用户管理</div>
+            <div style="width: 100%;margin: 0 auto;background: #FFFFFF">
+                <div style="text-align: right;line-height: 40px;padding-top: 1%">
+                    <input type="text" id="usernae" class="text" placeholder="姓名">
+                    <input type="text" id="loginname" class="text" placeholder="登录用户名">
+                    <input type="text" id="isphone" class="text" placeholder="手机号">
+                    <input type="button" class="btn" onclick="query_user()" value="查询">
+                    <input type="button" class="btn" value="新增" onclick="disUser()">
+                    <script>
+                        function disUser(){
+                            $("#manageUsers").css('display','block');
+                            $("#addTitle").html("新增用户");
+                            $("#modifyBtn").css("display","none");
+                        }
+                    </script>
+                </div>
+                <div id="table"></div>
+            </div>
+        </div>
+    </div>
+    <!--弹出修改框-->
+    <div class="add" id="manageUsers">
+        <h3 id="addTitle" style="margin-left: 1%">添加用户|修改用户</h3>
+        <hr>
+        <div id="addUser" style="width: 100%">
+            <table  width="85%" style="line-height: 50px;text-align: center;margin: 0 auto">
+                <tr>
+                    <td>账 号</td>
+                    <td><input type="text" id="user" class="text" onblur="checkU()" style="width: 80%"></td>
+                    <td>姓 名</td>
+                    <td><input type="text" id="name" class="text" onblur="checkName()" style="width: 80%"></td>
+                    </tr>
+                <tr>
+                    <td>邮 箱</td>
+                    <td><input type="email" id="mail" class="text" onblur="checkMail()" style="width: 80%"></td>
+                    <script>
+
+                    </script>
+                    <td>手 机</td>
+                    <td><input type="text" id="phone" class="text" onblur="checkPhone()" style="width: 80%"></td>
+                    </tr>
+                <tr>
+                    <td colspan='4'>
+                        <input type="button" class="btn" id="addBtn" value="添加" onclick="addUser()" style="width: 10%;height: 30px;font-size: 15px;">
+                        <script>
+
+                        </script>
+                        <input type="button" class="btn" id="modifyBtn" onclick="modifyUser()" value="修改" style="width: 10%;height: 30px;font-size: 15px;">
+                        <input type="button" class="btn" id="closeBtn" onclick="closeBtn()" value="取消" style="width: 10%;height: 30px;font-size: 15px;margin-left: 15px;">
+                        </td>
+                    </tr>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    var apiurl = "218.108.45.6:1112";
+//    var apiurl = "192.168.5.26:53801";
+    //页面加载完成就执行
+    query_user();
+    $(document).ready(function(){
+        //构造分页
+        var url = window.location.href;         //获取url
+        var t = parseInt(Math.ceil(ret.result.TotalCount/currpre));     //总页数
+        var up_page = parseInt(currentpage)-1;
+        var down_page = parseInt(currentpage)+1;
+        var list;
+        list ="<tr style='line-height: 35px;font-size: 13px;'>" +
+                "<td colspan='11'>";
+        list += "<span>共 "+t+" 页</span>";
+        if(currentpage == 1){
+            list +="<a style='margin-left: 15px'>上一页</a>";
+        }else {
+            list +="<a href='javascript:void(0)' rel='"+ up_page +"' style='margin-left: 15px'>上一页</a>";
+        }
+
+        if(currentpage == t){
+            list +="<a style='margin-left: 15px'>下一页</a>";
+        }else {
+            list +="<a href='javascript:void(0)' rel='"+ down_page +"' style='margin-left: 15px'>下一页</a>";
+        }
+        list +="<a style='margin-left: 15px'>共 "+ ret.result.TotalCount +" 条数据</a>"+
+                "</td>" +
+                "</tr>";
+        $("#pages").html(list);
+    });
+    //查询功能
+    function query_user(){
+        var loginname = $('#loginname').val();
+        var name = $("#name").val();
+        var phone = $("#isphone").val();
+        setUserTable(loginname,name,phone)
+    }
+    //构造表格
+    var userArr = new Array();  //用户修改：需要传的参数比较多，用这个数组接收，修改完成之后，数组销毁
+    function setUserTable(loginname,name,phone){
+        var currentpage = getQueryString("page");
+        var currpre = getQueryString("per");
+        if(currentpage == null){
+            currentpage = 1;
+        }
+        if(currpre == null){
+            currpre = 10;
+        }
+        var ret = getuserinfo(loginname,name,phone,currentpage,currpre);
+        console.log(ret);
+        var list = "<table style='width: 98%; line-height: 20px;text-align: center;margin: 0 auto;margin-bottom: 1%' border='1' cellpadding='1'>"+
+                "<tr style='color: #FFFFFF;background: #bdc3ca;font-size: 15px;line-height: 30px;'>" +
+                "<td style='width: 5%'>序号</td>"+
+                "<td style='width: 10%'>姓名</td>"+
+                "<td style='width: 10%'>登录名</td>"+
+                "<td style='width: 10%'>邮箱</td>"+
+                "<td style='width: 10%'>手机</td>"+
+                "<td style='width: 5%'>角色</td>"+
+                "<td style='width: 10%'>创建人</td>"+
+                "<td style='width: 10%'>创建时间</td>"+
+                "<td style='width: 5%'>修改人</td>"+
+                "<td style='width: 10%'>修改时间</td>"+
+                "<td style='width: 10%'>操作</td>"+
+                "</tr>";
+        for(var i= 0 ;i < ret.result.Data.length; i++){
+            var create_year= ret.result.Data[i].user.CreateDate;
+            var create_l = create_year.slice(0,10);
+            var create_r = create_year.slice(11,19);
+            var modify_year = ret.result.Data[i].user.ModifyDate;
+            if(modify_year == null){
+                var modify_l = '';
+                var modify_r = '';
+            }else {
+                var modify_l = modify_year.slice(0,10);
+                var modify_r = modify_year.slice(11,19);
+            }
+            if(ret.result.Data[i].role == null){
+                var modify = '';
+                var getAdminName = ''
+            }else {
+                var modify = ret.result.Data[i].role.ModifyID;
+                var getAdminName = ret.result.Data[i].role.Name;
+            }
+//            console.log(ret.result.Data[i].user.Name);
+            list += "<tr>"+
+                    "<td>"+(i+1)+"</td>"+
+                    "<td>"+ ret.result.Data[i].user.Name +"</td>"+
+                    "<td>"+ ret.result.Data[i].user.LoginName +"</td>"+
+                    "<td>"+ ret.result.Data[i].user.Email +"</td>"+
+                    "<td>"+ ret.result.Data[i].user.Mobile +"</td>"+
+                    "<td>"+ getAdminName +"</td>"+
+                    "<td>"+ ret.result.Data[i].user.CreateID +"</td>"+
+                    "<td>"+ create_l+" "+create_r +"</td>"+
+                    "<td>"+ modify +"</td>"+
+                    "<td>"+ modify_l+" "+ modify_r +"</td>"+
+                    "<td>" +
+                    "<input type='button' class='min_btn Modify'  userId = "+ ret.result.Data[i].user.UserID +" Name='"+ ret.result.Data[i].user.Name +"' " +
+                    "" + " LoginName='"+ret.result.Data[i].user.LoginName+"' passWord='"+ret.result.Data[i].user.Password+"' Email='"+ret.result.Data[i].user.Email+"'  " +
+                    "" + " EffectiveDate='"+ret.result.Data[i].user.EffectiveDate+"' ExpirationDate='"+ret.result.Data[i].user.ExpirationDate+"' IsSupervisor='"+ret.result.Data[i].user.IsSupervisor+"'" +
+                    "" + "IsLocked='"+ret.result.Data[i].user.IsLocked+"' LastLoginIp='"+ret.result.Data[i].user.LastLoginIp+"'LastLoginTime='"+ret.result.Data[i].user.LastLoginTime+"' " +
+                    "" + "SystemFlag='"+ret.result.Data[i].user.SystemFlag+"' Mobile='"+ ret.result.Data[i].user.Mobile +"' PasswordPolicyID='"+ ret.result.Data[i].user.PasswordPolicyID +"' " +
+                    "" + "CreateDate='"+ret.result.Data[i].user.CreateDate+"' CreateID='"+ret.result.Data[i].user.CreateID+"' ModifyDate='"+ret.result.Data[i].user.ModifyDate+"' " +
+                    "" + "ModifyID='"+ret.result.Data[i].user.ModifyID+"' IsDelete='"+ret.result.Data[i].user.IsDelete+"' IsActive='"+ret.result.Data[i].user.IsActive+"' EmployeeID='"+ret.result.Data[i].user.EmployeeID+"'" +
+                    "" + " value='修改'>"+
+                    "<input type='button' class='min_btn MyDelete' userId = "+ ret.result.Data[i].user.UserID +" value='删除' style='margin-left: 5%'>"+
+                    "</td>";
+            list += "<tr>"
+        }
+        list += "<table>";
+        list +="<div id='pages'></div>"
+        $("#table").html(list);
+        getuserinfo(loginname,name,phone,up_page,down_page);
+        //修改按钮
+        $(".Modify").on("click",function(){
+            //获取从按钮传过来的参数
+            var UserID = $(this).attr("userId");
+            var Name = $(this).attr("Name");
+            var LoginName = $(this).attr("LoginName");
+            var passWord = $(this).attr("passWord");
+            var Email = $(this).attr("Email");
+            var EffectiveDate = $(this).attr("EffectiveDate");
+            var ExpirationDate = $(this).attr("ExpirationDate");
+            var IsSupervisor = $(this).attr("IsSupervisor");
+            var IsLocked = $(this).attr("IsLocked");
+            var LastLoginIp = $(this).attr("LastLoginIp");
+            var LastLoginTime = $(this).attr("LastLoginTime");
+            var SystemFlag = $(this).attr("SystemFlag");
+            var Mobile = $(this).attr("Mobile");
+            var PasswordPolicyID = $(this).attr("PasswordPolicyID");
+            var CreateDate = $(this).attr("CreateDate");
+            var CreateID = $(this).attr("CreateID");
+            var ModifyDate = $(this).attr("ModifyDate");
+            var ModifyID = $(this).attr("ModifyID");
+            var IsDelete = $(this).attr("IsDelete");
+            var IsActive = $(this).attr("IsActive");
+            var EmployeeID = $(this).attr("EmployeeID");
+            userArr.push({      //将获取的值push到数组中
+                userId:UserID, Name:Name, LoginName:LoginName, passWord:passWord, Email:Email, EffectiveDate:EffectiveDate,
+                ExpirationDate:ExpirationDate, IsSupervisor:IsSupervisor, IsLocked:IsLocked, LastLoginIp:LastLoginIp,
+                LastLoginTime:LastLoginTime, SystemFlag:SystemFlag, Mobile:Mobile, PasswordPolicyID:PasswordPolicyID,
+                CreateDate:CreateDate, CreateID:CreateID, ModifyDate:ModifyDate, ModifyID:ModifyID, IsDelete:IsDelete,
+                IsActive:IsActive, EmployeeID:EmployeeID
+            });
+            $("#addTitle").html("信息修改");
+            $("#manageUsers").css('display','block');
+            $("#addBtn").css("display","none");
+            //input框赋值
+            $("#user").val(LoginName);
+            $("#name").val(Name);
+            $("#phone").val(Mobile);
+            $("#mail").val(Email)
+        });
+        //删除按钮
+        $(".MyDelete").on("click",function(){
+            var userid = $(this).attr("userId");
+           $.ajax({
+               url:"http://"+apiurl+"/api/User",
+               headers : {
+//                   "Access-Control-Allow-Headers":"Origin, Content-Type, Cookie, Accept",
+                   contentType: 'application/json; charset=utf-8',
+                   "X-Requested-With":"XMLHttpRequest"
+               },
+//               data:{_method:"DELETE",id:userid},
+                data:{id:userid},
+//                data:{id:userid},
+//                type:"DELETE",
+               type:"POST",
+               dataType:"json",
+               success:function(data){
+                    console.log(data);
+//                    switch(data.code) {
+//                        case 200:
+//                            alert(data.message);
+//                            break;
+//                        case 400:
+//                            alert(data.message);
+//                            break;
+//                    }
+                },error:function(msg){
+                    console.log(msg)
+                }
+            });
+
+//            var url = "http://"+apiurl+"/api/User?id="+userid+"";
+            var url = "http://"+apiurl+"/api/User";
+            //1.创建XMLHttpRequest组建
+//            var xhr = new XMLHttpRequest();
+//            xhr.open('delete',url,false);
+////            xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");  //必须写在open和send中间
+//            xhr.setRequestHeader('X-Requested-With','XMLHttpRequest');  //必须写在open和send中间
+//            xhr.send(null);
+//            xhr.onreadystatechange=function(data)
+//            {
+//                console.log(data.responseText);
+//            };
+//            var xhr = new XMLHttpRequest();
+//            xhr.open("DELETE",url,true);
+//            xhr.setRequestHeader("X-Requested-With","XMLHttpRequest");  //否则数据无法被正常接收
+//            xhr.send(JSON.stringify(id=userid));  //send里写要发送的数据
+//            xhr.onreadystatechange = function () {
+//                if (xhr.readyState == 4 && xhr.status == 200) {
+//                    console.log(xhr.responseText);
+//                }
+//            }
+        })
+    }
+
+    //用户名验证
+    function checkU(){
+        var name = $("#user").val();
+        if(name == ""){
+            $("#user").css("border-color","red");
+            return false;
+        }else {
+            $("#user").css("border-color","#ababab");
+            return true;
+        }
+    }
+    //验证姓名
+    function checkName(){
+        var name = $("#name").val();
+        if(name == ""){
+            $("#name").css("border-color","red");
+            return false;
+        }else {
+            $("#name").css("border-color","#ababab");
+            return true;
+        }
+    }
+    //邮箱验证
+    function checkMail(){
+        var mail = $("#mail").val();
+        var res = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
+        if(mail == ""){
+            $("#mail").css("border-color","red");
+            return false;
+        }else{
+            if(!res.test(mail)){
+                $("#mail").css("border-color","red");
+                return false;
+            }else {
+                $("#mail").css("border-color","#ababab");
+                return true;
+            }
+        }
+    }
+    //手机号验证
+    function checkPhone(){
+        var phone = $("#phone").val();
+        var phoneReg = /(^1[3|4|5|7|8]\d{9}$)|(^09\d{8}$)/;
+        //电话
+        if (!phoneReg.test(phone)) {
+            $("#phone").css("border-color","red");
+            return false;
+        }else {
+            $("#phone").css("border-color","#ababab");
+            return true;
+        }
+    }
+    //添加用户
+    function addUser(){
+        var user = $("#user").val();
+        var name = $("#name").val();
+        var mail = $("#mail").val();
+        var phone = $("#phone").val();
+//        if(checkU(user) && checkName(name) && checkMail(mail) && checkPhone(phone)){
+            $.ajax({
+                url:"http://"+apiurl+"/api/User",
+                data:{_method:"PUT",UserID: "aaaa", Name: "aaaaa", Email: "1165804808@qq.com", Mobile: "17767065831"},
+//                data:{_method:"PUT",UserID: id, LoginName: user, Name: name, Email: mail, Mobile: phone},
+                type:"POST",
+                contentType:"application/x-www-form-urlencoded",
+//                contentType:"application/json;charset=utf-8",
+                dataType:"json",
+                success:function(data){
+                    console.log(data);
+                    switch(data.code) {
+                        case 200:
+                            alert(data.message);
+                            break;
+                        case 400:
+                            alert(data.message);
+                            break;
+                    }
+                }
+            });
+//        }
+    }
+    //修改用户
+    function modifyUser(){
+        var user = $("#user").val();
+        var name = $("#name").val();
+        var mail = $("#mail").val();
+        var phone = $("#phone").val();
+        console.log(userArr);
+        var arr = {
+            "UserID": userArr[0]["userId"], "Name":user , "LoginName": name, "Password": userArr[0]["passWord"],
+            "Email": mail, "EffectiveDate": userArr[0]["EffectiveDate"], "ExpirationDate": userArr[0]["ExpirationDate"],
+            "IsSupervisor": userArr[0]["IsSupervisor"], "IsLocked": userArr[0]["IsLocked"], "LastLoginIp": userArr[0]["LastLoginIp"],
+            "LastLoginTime": userArr[0]["LastLoginTime"], "SystemFlag": userArr[0]["SystemFlag"], "Mobile": phone,
+            "PasswordPolicyID": userArr[0]["PasswordPolicyID"], "CreateDate": userArr[0]["CreateDate"], "CreateID": userArr[0]["CreateID"],
+            "ModifyDate": userArr[0]["ModifyDate"], "ModifyID": userArr[0]["ModifyID"], "IsDelete": userArr[0]["IsDelete"],
+            "IsActive": userArr[0]["IsActive"], "EmployeeID": userArr[0]["EmployeeID"]
+             /*
+            Email: "123@123.com",
+            LoginName: "qwe2000",
+            Mobile: null,
+            Name: "qwe2000",
+            UserID: "qwe2"
+            */
+        };
+        console.log(arr)
+        $.ajax({
+            url:"http://"+apiurl+"/api/User/UpdateUser",
+            data:JSON.stringify(arr),
+            type:"PUT",
+            dataType:"json",
+            contentType:"application/x-www-form-urlencoded",
+            success:function(data){
+                if(data.code == 200){
+                    alert("账号修改成功");
+                    userArr.length = 0; //释放数组
+                }else{
+                    alert(data.message)
+                    userArr.length = 0; //释放数组
+                }
+            }
+        })
+    }
+    //获取用户信息ajax
+    function getuserinfo(loginname,name,phone,page,per){
+        var ret;
+        $.ajax({
+            url:"http://218.108.45.6:1112/api/User/Query",
+            data:{LoginName:loginname,Mobile:phone,Name:name,page:page,per:per},
+            type:"get",
+            dataType:"json",
+            async:false,
+            success:function(data){
+                ret = data
+            }
+        });
+        return ret;
+    }
+    //分页获取URL地址参数
+    function getQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) return unescape(r[2]);
+        return null;
+    }
+    //添加和修改的关闭按钮
+    function closeBtn(){
+        $("#manageUsers").css("display","none");
+        $("#user").val("");
+        $("#name").val("");
+        $("#mail").val("");
+        $("#phone").val("");
+        window.location.reload();
+    }
+</script>
+</html>

@@ -1,0 +1,316 @@
+{include file="Public/title" /}
+<style>
+    .bor_radius{
+        border-radius: 10px;
+        width: 20px;
+        height: 20px;
+        background: #ffffff;
+        cursor:pointer;
+    }
+    .title{
+        width: 95%;
+        background: #242a30;
+        line-height: 35px;
+        margin-left: 2.5%;
+        border-radius: 5px 5px 0 0;
+        display: inline-block;
+    }
+    .text{
+        width: 15%;
+        height: 30px;
+        line-height: 30px;;
+        color: #555;
+        background-color: #fff;
+        font-family: inherit;
+        font-size: 12px;
+        border-radius: 5px;
+        border: 1px solid #ccd0d4;
+        padding-left: 1%;
+    }
+    .btn{
+        height: 30px;
+        border: none;
+        background: dodgerblue;
+        padding: 0 15px;
+        border-radius: 5px;
+        font-size: 13px;
+        color: #FFFFFF;
+        margin-left: 1%;
+        cursor:pointer
+    }
+    .btn:hover{
+        background: #67b3fd;
+        color: #6b6b6b;
+    }
+    .tab{
+        width: 95%;
+        margin: 0 auto;
+        text-align: center;
+        border: 1px solid #ddd;
+        line-height: 32px;
+    }
+    .btn1{
+        width: 50%;
+        height: 25px;
+        font-size: 13px;
+        color: #FFFFFF;
+        background: dodgerblue;
+        border: 1px solid dodgerblue;
+        border-radius: 4px;
+        cursor:pointer;
+    }
+    .btn1:hover{
+        background: #929496;
+        border: 1px solid #929496;
+    }
+    .addxin{
+        display: none;
+        width: 70%;
+        background:#FFFFFF;
+        position: fixed;
+        margin: 0 auto;
+        border-radius: 5px;
+        top: 30%;
+        left: 22%;
+        /*right: 0;*/
+        padding-bottom: 1%;
+    }
+    .addxin table{
+        width: 100%;
+        line-height: 50px;
+        text-align: center;
+    }
+    .newtext{
+        width: 70%;text-align: center;
+        font-size: 15px;;
+    }
+    #intips{
+        display: none;
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        background: #707478;
+        filter:alpha(opacity:30); opacity:0.3;
+    }
+</style>
+</head>
+<body class="layui-layout-body">
+{include file="Public/loging" /}
+{include file="Public/header" /}
+{include file="Public/headeleft" item="show05" /}
+<div class="layui-body">
+    <div id="intips"></div>
+    <div>
+        <div>
+            <p style="width: 46%;float: left;margin: 1% 2%">
+                <img src="/index/i/manage.png" width="30px" height="30px;" style="vertical-align:middle">
+                <span style="font-size: 25px;vertical-align:middle;color: #494f54">生产时间计划</span>
+            </p>
+            <p style="width:46%;float: right;text-align: right;margin: 1% 2%">
+                <a href="{:url('Repair/repair_query')}">首页</a>&nbsp;&nbsp;|&nbsp;
+                <a href="{:url('Addmanual/plan_num')}">手工计划录入</a>&nbsp;&nbsp;|&nbsp;
+                <span>生产时间计划</span>
+            </p>
+        </div>
+        <div class="title">
+            <div>
+                <p style="float: left;width: 48%;margin-left: 2%;color: #ffffff">生产时间计划</p>
+                <p style="float: left;width: 48%;text-align: right;margin-right: 2%">
+                    <img class="bor_radius" src="/index/i/update.png" title="刷新" onclick="query_nbm()">&nbsp;&nbsp;&nbsp;
+                    <img class="bor_radius" src="/index/i/exit.png" title="关闭" onclick="isclose()">
+                </p>
+            </div>
+        </div>
+        <div style="width: 95%;background: #FFFFFF;margin: 0 auto">
+            <p style="text-align: right;padding: 2%">
+                <span>当前生产线</span>
+                <input class="text" id="production_nbm" type="text" placeholder="请输入生产线号" title="请输入生产线号，如'A1'">
+                <input class="btn" type="button" value="查询" onclick="query_nbm()">
+                <input class="btn" type="button" value="新增" onclick="addmenu()">
+            </p>
+            <span id="table"></span>
+        </div>
+        <!--新建菜单-->
+        <div class="addxin">
+            <div>
+                <h3 style="padding: 1% 0 0 1%">生产计划</h3>
+                <hr>
+                <table>
+                    <tr>
+                        <td><font color="red">*</font>日期</td>
+                        <td><input type="text" class="text newtext" id="repair_year" placeholder="/年/月/日"></td>
+                        <td><font color="red">*</font>起始时间</td>
+                        <td><input type="text" class="text newtext test-item" id="start_time" placeholder="/选择时间"></td>
+                    </tr>
+                    <tr>
+                        <td><font color="red">*</font>结束时间</td>
+                        <td><input type="text" class="text newtext test-item" id="end_time" placeholder="/选择时间"></td>
+                        <td>生产线号</td>
+                        <td><input type="text" id="product_nbm" class="text newtext"></td>
+                    </tr>
+                    <tr>
+                        <td>记录条数</td>
+                        <td><input type="text" id="addcount" class="text newtext"></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </table>
+                <hr>
+                <p style="text-align: right;padding-right: 2%">
+                    <input type="button" class="btn" value="保存" onclick="storage()">
+                    <input type="button" class="btn" value="关闭" onclick="planClose()">
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    //构造table表格（upCount：总数据条数  upPer：每页显示多少条  upCurrPage：当前页）
+    var upCount;
+    var upPer;
+    var upCurrPage;
+    function query_nbm(curr){
+        var text = $("#production_nbm").val();
+        if(text != "") {
+            if(curr == undefined){
+                upCurrPage = 1;
+            }
+//            var currPage = 1;
+            upPer = 10;
+            var ret = manualPlan(upCurrPage,upPer, text);
+            var result = ret.result.Data;
+            upCount = ret.result.TotalCount;
+            var list = '<table class="tab" border="1" style="width: 95%">';
+            list += "<tr style='background: #ababab;font-weight: bold'>" +
+                    "<td>序号</td>" +
+                    "<td>日期</td>" +
+                    "<td>起始时间</td>" +
+                    "<td>结束时间</td>" +
+                    "<td>生产线号</td>" +
+                    "<td>操作</td>";
+            list += "</tr>";
+            for (i = 0; i < result.length; i++) {
+                /*   备注：这个地方可能会存在问题，时间分割是切割，是按多少位来切割，不是分割   */
+                var plan_data = result[i]["plan_date"].slice(0, 10); //字符切割 获取年月日
+                var start_time = result[i]["time_s"].slice(11, 19);  //开始时间
+                var end_time = result[i]["time_e"].slice(11, 19);    //结束时间
+                list += "<tr>" +
+                        "<td>" + result[i]["no"] + "</td>" +
+                        "<td>" + plan_data + "</td>" +
+                        "<td>" + start_time + "</td>" +
+                        "<td>" + end_time + "</span></td>" +
+                        "<td>" + result[i]["pline_nub"] + "</td>" +
+                        "<td>" +
+                        "<input class='btn1' type='button'  value='删除' onclick=del('" + result[i]["no"] + "','" + result[i]["time_s"] + "','" + result[i]["time_e"] + "','" + result[i]["plan_date"] + "')>" +
+                        "</td>";
+                list += "</tr>";
+            }
+            list += "</table>";
+            list += "<div id='upDataPage' style='text-align: center'></div>";
+            $("#table").html(list);
+            dataPage();     //调用分页
+
+        }else {
+            alert("请输入要查询的生产线号")
+        }
+    }
+    //构造table分页
+    function dataPage(){
+        layui.use('laypage', function () {
+            var laypage = layui.laypage;
+            laypage.render({
+                elem: 'upDataPage'
+                , count: upCount     //数据总数。一般通过服务端得到
+                , layout: ['count', 'prev', 'page', 'next']
+                , limit: upPer    //每页显示的条数
+                , curr: upCurrPage //起始页。一般用于刷新类型的跳页以及HASH跳页
+                , groups: 5                     //连续出现的页码个数
+                , jump: function(obj,first){
+                    if(!first){
+                        upCurrPage = obj.curr;
+                        query_nbm(obj.curr);
+                    }
+                }
+            });
+        });
+    }
+    //删除数据
+    function del(no,s_time,e_time,plan_date){
+        var text = $("#production_nbm").val();
+        if(confirm('确定要删除吗')==true){
+            var ret = removePlineTime(no,s_time,e_time,text,plan_date);
+            if(ret.code == 200){
+                alert("删除成功!");
+                query_nbm();
+            }else {
+                alert("删除失败!")
+            }
+        }
+    }
+
+    //页面加载完成之后执行
+    $(document).ready(function (){});
+    layui.use('laydate', function(){    //年选择器
+        var laydate = layui.laydate;
+        //日期时间选择器
+        laydate.render({
+            elem: '#repair_year'
+//            ,value: new Date()
+            ,type: 'month'
+
+        });
+    });
+    layui.use('laydate', function(){    //时间选择器
+        var laydate = layui.laydate;
+        //同时绑定多个
+        lay('.test-item').each(function(){
+            laydate.render({
+                elem: this
+                ,format:'HH:mm:ss'  //yyyy-MM-dd HH:mm:ss
+                ,type:'time'
+                ,trigger: 'click'
+                ,theme: 'grid'
+            });
+        });
+    });
+
+    function addmenu(){
+        $("#intips").css("display","block");
+        $(".addxin").css("display","block")
+    }
+    //新增
+    function storage(){
+        var plan_date = $("#repair_year").val();
+        var startTime = $("#start_time").val();
+        var endTime = $("#end_time").val();
+        var productNbm = $("#product_nbm").val();
+        var addCount = $("#addcount").val();
+        if(plan_date == "" || startTime == "" || endTime == ""){
+            alert("请输入完整信息!");
+            return false;
+        }else {
+            var TotalCount = manualPlan(1, 10, productNbm);     //查询线号
+            var Count = TotalCount.result.TotalCount;           //获取线号中存在记录的条数
+            var no = (Count+1);                                 //获取总记录条数之后增加1，成为增加后的序号
+            var ret = savePlineTime(no,startTime,endTime,productNbm,plan_date,addCount);
+            if(ret.code == 200){
+                alert("保存成功!");
+                planClose();
+            }else {
+                alert("保存失败!")
+            }
+        }
+    }
+    //关闭新增框
+    function planClose(){
+        //关闭新增框之后清空输入框的内容
+        $("#intips").css("display","none");
+        $(".addxin").css("display","none");
+        $("#repair_year").val("");
+        $("#start_time").val("");
+        $("#end_time").val("");
+        $("#product_nbm").val("");
+        $("#addcount").val("");
+    }
+</script>
+{include file="Public/bottom" /}
